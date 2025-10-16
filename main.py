@@ -210,7 +210,7 @@ Photorealistic, ultra detailed, architectural magazine style."""
     kb.button(text="🔁 Перевести", callback_data=f"translate_{c.from_user.id}")
     kb.button(text="🗂 История", callback_data="history")
     kb.button(text="📤 Экспорт", callback_data="export")
-    kb.adjust(1, 2)  # 1 кнопка в первом ряду, 2 во втором
+    kb.adjust(1)
 
     # Убираем лишние пробелы
     prompt_clean = "\n".join([line.strip() for line in prompt.split("\n") if line.strip()])
@@ -272,7 +272,7 @@ async def export_history(c: CallbackQuery):
         FSInputFile(path),
         caption="📤 Экспорт истории промптов"
     )
-    os.remove(path)  # Удаляем файл после отправки
+    os.remove(path)
 
 # ---------- Admin ----------
 @dp.message(Command("adduser"))
@@ -332,7 +332,7 @@ async def broadcast(msg: Message):
         try:
             await bot.send_message(uid, f"📢 *Объявление:*\n\n{text}")
             count += 1
-            await asyncio.sleep(0.05)  # Защита от флуда
+            await asyncio.sleep(0.05)
         except Exception:
             failed += 1
     
