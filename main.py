@@ -10,26 +10,42 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.client.default import DefaultBotProperties
 
 # ---- ДИАГНОСТИКА ----
+import sys
 print("=" * 60)
-print("🔍 ДИАГНОСТИКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ")
+print("🔍 ДЕТАЛЬНАЯ ДИАГНОСТИКА")
 print("=" * 60)
-print(f"Python version: {sys.version}")
-print(f"Working directory: {os.getcwd()}")
-print(f"\n📋 Все переменные окружения:")
-for key in sorted(os.environ.keys()):
-    if key == "TOKEN":
-        print(f"  ✅ {key} = {os.environ[key][:20]}...")  # Показываем первые 20 символов
-    else:
-        print(f"  • {key} = {os.environ[key][:50] if len(os.environ[key]) < 50 else os.environ[key][:50] + '...'}")
 
-print(f"\n🔑 Проверка TOKEN:")
-print(f"  TOKEN в os.environ? {'TOKEN' in os.environ}")
-print(f"  os.getenv('TOKEN')? {os.getenv('TOKEN') is not None}")
+# Проверка всех переменных
+print("\n📋 Все переменные окружения:")
+for key, value in sorted(os.environ.items()):
+    if 'TOKEN' in key or 'ADMIN' in key:
+        print(f"  🔑 {key} = {repr(value)}")  # repr() покажет кавычки если они есть
 
-if 'TOKEN' in os.environ:
-    token_value = os.environ['TOKEN']
-    print(f"  Длина токена: {len(token_value)}")
-    print(f"  Первые 10 символов: {token_value[:10]}")
+# Попытка получить TOKEN разными способами
+print("\n🔧 Попытки получить TOKEN:")
+token1 = os.environ.get('TOKEN')
+token2 = os.getenv('TOKEN')
+print(f"  1. os.environ.get('TOKEN') = {repr(token1)}")
+print(f"  2. os.getenv('TOKEN') = {repr(token2)}")
+
+# Если токен есть, проверим его содержимое
+if token1:
+    print(f"\n✅ Токен найден!")
+    print(f"  Длина: {len(token1)}")
+    print(f"  Первые символы: {token1[:20]}...")
+    print(f"  Есть кавычки в начале? {token1[0] == '\"'}")
+    print(f"  Есть кавычки в конце? {token1[-1] == '\"'}")
+    
+    # Очистка от кавычек если есть
+    TOKEN = token1.strip('"').strip("'")
+    print(f"  После очистки: {TOKEN[:20]}...")
+else:
+    print("\n❌ Токен НЕ найден!")
+    print("\n🔍 Все переменные окружения (полный список):")
+    for key in sorted(os.environ.keys()):
+        print(f"  • {key}")
+    TOKEN = None
+
 print("=" * 60)
 # ---- КОНЕЦ ДИАГНОСТИКИ ----
 
