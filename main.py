@@ -19,8 +19,9 @@ def has_access(user_id: int) -> bool:
 def is_admin(user_id: int) -> bool:
     return user_id in WHITELIST.get("admin", [])
 
-TOKEN = "ВАШ_ТОКЕН_ОТ_BOTFATHER"  # Временно для теста
-
+TOKEN = os.getenv("TOKEN")
+if not TOKEN:
+    raise RuntimeError("TOKEN environment variable is missing.")
 
 bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode="Markdown"))
 dp = Dispatcher()
