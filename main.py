@@ -7,6 +7,8 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
 from aiogram.filters import CommandStart, Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.client.default import DefaultBotProperties
+
 
 import json
 
@@ -29,7 +31,7 @@ TOKEN = os.getenv("TOKEN")
 if not TOKEN:
     raise RuntimeError("TOKEN environment variable is missing. Set it to your Telegram bot token.")
 
-bot = Bot(token=TOKEN, parse_mode="Markdown")
+bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode="Markdown"))
 dp = Dispatcher()
 
 # ---------- Load data ----------
