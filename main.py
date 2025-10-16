@@ -8,6 +8,14 @@ from aiogram.filters import CommandStart, Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.client.default import DefaultBotProperties
 
+# ---- ВРЕМЕННАЯ ДИАГНОСТИКА ----
+print("=" * 50)
+print("🔍 Проверка переменных окружения:")
+print(f"TOKEN существует: {'TOKEN' in os.environ}")
+print(f"Все переменные: {list(os.environ.keys())}")
+print("=" * 50)
+# ---- КОНЕЦ ДИАГНОСТИКИ ----
+
 # ---- Проверка доступа ----
 ACCESS_PATH = os.path.join(os.path.dirname(__file__), "access", "whitelist.json")
 with open(ACCESS_PATH, "r", encoding="utf-8") as f:
