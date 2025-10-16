@@ -1,4 +1,3 @@
-
 import os
 import json
 import asyncio
@@ -9,27 +8,20 @@ from aiogram.filters import CommandStart, Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.client.default import DefaultBotProperties
 
-
-import json
-
 # ---- Проверка доступа ----
 ACCESS_PATH = os.path.join(os.path.dirname(__file__), "access", "whitelist.json")
 with open(ACCESS_PATH, "r", encoding="utf-8") as f:
     WHITELIST = json.load(f)
 
 def has_access(user_id: int) -> bool:
-    """Проверяет, есть ли у пользователя доступ"""
     return user_id in WHITELIST.get("allowed", []) or user_id in WHITELIST.get("admin", [])
 
 def is_admin(user_id: int) -> bool:
-    """Проверяет, является ли пользователь админом"""
     return user_id in WHITELIST.get("admin", [])
 
-
 TOKEN = os.getenv("TOKEN")
-
 if not TOKEN:
-    raise RuntimeError("TOKEN environment variable is missing. Set it to your Telegram bot token.")
+    raise RuntimeError("TOKEN environment variable is missing.")
 
 bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode="Markdown"))
 dp = Dispatcher()
@@ -69,7 +61,6 @@ async def init_db():
 # ---------- Commands ----------
 @dp.message(CommandStart())
 async def cmd_start(msg: Message):
-
     if not has_access(msg.from_user.id):
         kb = InlineKeyboardBuilder()
         kb.button(text="Оформить доступ", url="https://t.me/XY_ACADEMY")
@@ -87,93 +78,106 @@ async def cmd_start(msg: Message):
     kb.button(text="📤 Экспорт", callback_data="export")
     kb.adjust(2)
     await msg.answer(
-        "👋 Привет! Я *Prompt Architect AI.*\n\nСоздаю идеальные промпты для визуализаций.\nВыбери действие:",
+        "👋 Привет! Я *Prompt Architect AI*\n\nСоздаю идеальные промпты для визуализаций\nВыбери действие:",
         reply_markup=kb.as_markup()
     )
 
-@dp.message(Command("language"))
-async def cmd_language(msg: Message):
-    await choose_lang(CallbackQuery(id="0", from_user=msg.from_user, message=msg, data="lang"))
-
 @dp.callback_query(F.data == "lang")
 async def choose_lang(c: CallbackQuery):
+    await c.answer()
     kb = InlineKeyboardBuilder()
     kb.button(text="🇷🇺 Русский", callback_data="set_ru")
     kb.button(text="🇬🇧 English", callback_data="set_en")
+    kb.adjust(2)
     await c.message.answer("Выбери язык интерфейса / Choose language:", reply_markup=kb.as_markup())
 
 @dp.callback_query(F.data == "set_ru")
 async def set_ru(c: CallbackQuery):
+    await c.answer("Язык изменён")
     user_lang[c.from_user.id] = "ru"
     await c.message.answer("✅ Язык установлен: *Русский*")
 
 @dp.callback_query(F.data == "set_en")
 async def set_en(c: CallbackQuery):
+    await c.answer("Language changed")
     user_lang[c.from_user.id] = "en"
     await c.message.answer("✅ Language set: *English*")
 
 # ---------- Constructor flow ----------
 @dp.callback_query(F.data == "create")
 async def start_constructor(c: CallbackQuery):
+    await c.answer()
     user_state[c.from_user.id] = {}
     kb = InlineKeyboardBuilder()
     for platform in ["Midjourney", "Seedream", "RealRender", "Nanobanana"]:
         kb.button(text=platform, callback_data=f"platform_{platform}")
+    kb.adjust(2)
     await c.message.answer("🔹 Выбери платформу:", reply_markup=kb.as_markup())
 
 @dp.callback_query(F.data.startswith("platform_"))
 async def choose_platform(c: CallbackQuery):
+    await c.answer()
     platform = c.data.split("_", 1)[1]
     user_state[c.from_user.id]["platform"] = platform
     kb = InlineKeyboardBuilder()
     for k in INTERIORS:
         kb.button(text=k, callback_data=f"interior_{k}")
+    kb.adjust(2)
     await c.message.answer("🏠 Выбери тип интерьера:", reply_markup=kb.as_markup())
 
 @dp.callback_query(F.data.startswith("interior_"))
 async def choose_interior(c: CallbackQuery):
+    await c.answer()
     inter = c.data.split("_", 1)[1]
     user_state[c.from_user.id]["interior"] = inter
     kb = InlineKeyboardBuilder()
     for k in PHOTOGRAPHERS:
         kb.button(text=k, callback_data=f"photo_{k}")
+    kb.adjust(2)
     await c.message.answer("📷 Выбери фотографа / стиль:", reply_markup=kb.as_markup())
 
 @dp.callback_query(F.data.startswith("photo_"))
 async def choose_photo(c: CallbackQuery):
+    await c.answer()
     ph = c.data.split("_", 1)[1]
     user_state[c.from_user.id]["photographer"] = ph
     kb = InlineKeyboardBuilder()
     for k in LIGHTING:
         kb.button(text=k, callback_data=f"light_{k}")
+    kb.adjust(2)
     await c.message.answer("💡 Выбери освещение:", reply_markup=kb.as_markup())
 
 @dp.callback_query(F.data.startswith("light_"))
 async def choose_light(c: CallbackQuery):
+    await c.answer()
     lt = c.data.split("_", 1)[1]
     user_state[c.from_user.id]["lighting"] = lt
     kb = InlineKeyboardBuilder()
     for k in ["Slightly imperfect handheld", "Centered cinematic", "Wide architectural", "Close magazine frame"]:
         kb.button(text=k, callback_data=f"angle_{k}")
+    kb.adjust(2)
     await c.message.answer("🎥 Выбери ракурс камеры:", reply_markup=kb.as_markup())
 
 @dp.callback_query(F.data.startswith("angle_"))
 async def choose_angle(c: CallbackQuery):
+    await c.answer()
     angle = c.data.split("_", 1)[1]
     user_state[c.from_user.id]["angle"] = angle
     kb = InlineKeyboardBuilder()
     kb.button(text="🚫 Без беспорядка", callback_data="clutter_none")
     kb.button(text="✨ Лёгкий беспорядок", callback_data="clutter_light")
+    kb.adjust(2)
     await c.message.answer("✨ Добавить естественный беспорядок?", reply_markup=kb.as_markup())
 
 @dp.callback_query(F.data.startswith("clutter_"))
 async def choose_clutter(c: CallbackQuery):
+    await c.answer()
     uid = c.from_user.id
     choice = c.data.split("_", 1)[1]
     user_state[uid]["clutter"] = choice
     await generate_prompt(c)
 
-# ---------- Generate, save, translate ----------
+# ---------- Generate ----------
 async def generate_prompt(c: CallbackQuery):
     data = user_state.get(c.from_user.id, {})
     inter_desc = INTERIORS[data["interior"]]
@@ -202,61 +206,75 @@ Photorealistic, ultra detailed, architectural magazine style."""
         await db.commit()
 
     # Action buttons
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🔁 Перевести", callback_data=f"translate_{c.from_user.id}")],
-        [InlineKeyboardButton(text="🗂 История", callback_data="history"),
-         InlineKeyboardButton(text="📤 Экспорт", callback_data="export")]
-    ])
+    kb = InlineKeyboardBuilder()
+    kb.button(text="🔁 Перевести", callback_data=f"translate_{c.from_user.id}")
+    kb.button(text="🗂 История", callback_data="history")
+    kb.button(text="📤 Экспорт", callback_data="export")
+    kb.adjust(1, 2)  # 1 кнопка в первом ряду, 2 во втором
 
-    # Monospaced code block
-    await c.message.answer(f"✅ *Готовый промпт:*\n```{prompt}```", reply_markup=kb)
+    # Убираем лишние пробелы
+    prompt_clean = "\n".join([line.strip() for line in prompt.split("\n") if line.strip()])
+    await c.message.answer(f"✅ *Готовый промпт:*\n```\n{prompt_clean}\n```", reply_markup=kb.as_markup())
 
 @dp.callback_query(F.data.startswith("translate_"))
 async def translate_prompt(c: CallbackQuery):
-    # Simple RU translation boilerplate (short summary + instruction to copy)
+    await c.answer()
     await c.message.answer(
         "🔁 *Краткий перевод / структура:*\n"
         "— Фото интерьера в выбранном стиле фотографа\n"
         "— Тип освещения\n"
         "— Ракурс камеры\n"
         "— (опц.) Лёгкий «обжитый» беспорядок\n"
-        "— Фраза о неизменности геометрии/мебели/светильников (кроме Nanobanana)\n\n"
-        "_Скопируй англоязычный блок в генератор (он выше, в моноширинном формате)._"
+        "— Фраза о неизменности геометрии/мебели/светильников\n\n"
+        "_Скопируй англоязычный блок в генератор (он выше)_"
     )
 
 # ---------- History & Export ----------
 @dp.callback_query(F.data == "history")
 async def history_menu(c: CallbackQuery):
+    await c.answer()
     async with aiosqlite.connect(DB_PATH) as db:
-        async with db.execute("SELECT prompt, created FROM prompts WHERE user_id=? ORDER BY id DESC LIMIT 5", (c.from_user.id,)) as cur:
+        async with db.execute(
+            "SELECT prompt, created FROM prompts WHERE user_id=? ORDER BY id DESC LIMIT 5",
+            (c.from_user.id,)
+        ) as cur:
             rows = await cur.fetchall()
+    
     if not rows:
-        await c.message.answer("📂 История пуста.")
+        await c.message.answer("📂 История пуста")
         return
-    text = "\n\n".join([f"🕓 {r[1]}\n```{r[0]}```" for r in rows])
-    await c.message.answer(f"🗂 *Последние промпты:*\n{text}")
+    
+    text = "\n\n".join([f"🕓 {r[1]}\n```\n{r[0]}\n```" for r in rows])
+    await c.message.answer(f"🗂 *Последние 5 промптов:*\n\n{text}")
 
 @dp.callback_query(F.data == "export")
 async def export_history(c: CallbackQuery):
+    await c.answer()
     async with aiosqlite.connect(DB_PATH) as db:
-        async with db.execute("SELECT created, prompt FROM prompts WHERE user_id=? ORDER BY id DESC", (c.from_user.id,)) as cur:
+        async with db.execute(
+            "SELECT created, prompt FROM prompts WHERE user_id=? ORDER BY id DESC",
+            (c.from_user.id,)
+        ) as cur:
             rows = await cur.fetchall()
+    
     if not rows:
-        await c.message.answer("Нет данных для экспорта.")
+        await c.message.answer("Нет данных для экспорта")
         return
-    # Build text file content
-    lines = []
-    for created, prompt in rows:
-        lines.append(f"=== {created} ===\n{prompt}\n")
+    
+    lines = [f"=== {created} ===\n{prompt}\n" for created, prompt in rows]
     content = "\n".join(lines)
+    
     path = os.path.join(os.path.dirname(DB_PATH), f"prompts_{c.from_user.id}.txt")
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
-    await c.message.answer_document(FSInputFile(path), caption="📤 Экспорт истории промптов")
+    
+    await c.message.answer_document(
+        FSInputFile(path),
+        caption="📤 Экспорт истории промптов"
+    )
+    os.remove(path)  # Удаляем файл после отправки
 
-# =======================
-# 🔧 Админ-команды
-# =======================
+# ---------- Admin ----------
 @dp.message(Command("adduser"))
 async def add_user(msg: Message):
     if not is_admin(msg.from_user.id):
@@ -267,9 +285,11 @@ async def add_user(msg: Message):
             WHITELIST["allowed"].append(new_id)
             with open(ACCESS_PATH, "w", encoding="utf-8") as f:
                 json.dump(WHITELIST, f, ensure_ascii=False, indent=2)
-            await msg.answer(f"✅ Пользователь {new_id} добавлен в whitelist.")
-    except Exception:
-        await msg.answer("⚠️ Используй формат: /adduser <id>")
+            await msg.answer(f"✅ Пользователь `{new_id}` добавлен")
+        else:
+            await msg.answer(f"ℹ️ Пользователь `{new_id}` уже в whitelist")
+    except (IndexError, ValueError):
+        await msg.answer("⚠️ Формат: /adduser <user\\_id>")
 
 @dp.message(Command("removeuser"))
 async def remove_user(msg: Message):
@@ -281,17 +301,20 @@ async def remove_user(msg: Message):
             WHITELIST["allowed"].remove(rem_id)
             with open(ACCESS_PATH, "w", encoding="utf-8") as f:
                 json.dump(WHITELIST, f, ensure_ascii=False, indent=2)
-            await msg.answer(f"❌ Пользователь {rem_id} удалён из whitelist.")
-    except Exception:
-        await msg.answer("⚠️ Используй формат: /removeuser <id>")
+            await msg.answer(f"❌ Пользователь `{rem_id}` удалён")
+        else:
+            await msg.answer(f"ℹ️ Пользователя `{rem_id}` нет в whitelist")
+    except (IndexError, ValueError):
+        await msg.answer("⚠️ Формат: /removeuser <user\\_id>")
 
 @dp.message(Command("users"))
 async def list_users(msg: Message):
     if not is_admin(msg.from_user.id):
         return
-    users = WHITELIST.get("allowed", [])
     admins = WHITELIST.get("admin", [])
-    text = "👑 Админы:\n" + "\n".join([str(a) for a in admins]) + "\n\n👥 Пользователи:\n" + "\n".join([str(u) for u in users])
+    users = WHITELIST.get("allowed", [])
+    text = f"👑 *Админы:*\n" + "\n".join([f"`{a}`" for a in admins])
+    text += f"\n\n👥 *Пользователи ({len(users)}):*\n" + "\n".join([f"`{u}`" for u in users])
     await msg.answer(text)
 
 @dp.message(Command("broadcast"))
@@ -300,22 +323,25 @@ async def broadcast(msg: Message):
         return
     text = msg.text.replace("/broadcast", "").strip()
     if not text:
-        await msg.answer("⚠️ Используй формат: /broadcast <текст>")
+        await msg.answer("⚠️ Формат: /broadcast <текст>")
         return
+    
     count = 0
-    for uid in WHITELIST.get("allowed", []):
+    failed = 0
+    for uid in WHITELIST.get("allowed", []) + WHITELIST.get("admin", []):
         try:
-            await bot.send_message(uid, f"📢 {text}")
+            await bot.send_message(uid, f"📢 *Объявление:*\n\n{text}")
             count += 1
-        except:
-            pass
-    await msg.answer(f"✅ Рассылка завершена ({count} пользователей).")
-
+            await asyncio.sleep(0.05)  # Защита от флуда
+        except Exception:
+            failed += 1
+    
+    await msg.answer(f"✅ Рассылка завершена\n📤 Отправлено: {count}\n❌ Ошибок: {failed}")
 
 # ---------- Run ----------
 async def main():
     await init_db()
-    print("✅ Prompt Architect v3 is running.")
+    print("✅ Prompt Architect v3 is running")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
