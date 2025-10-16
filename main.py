@@ -8,12 +8,28 @@ from aiogram.filters import CommandStart, Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.client.default import DefaultBotProperties
 
-# ---- ВРЕМЕННАЯ ДИАГНОСТИКА ----
-print("=" * 50)
-print("🔍 Проверка переменных окружения:")
-print(f"TOKEN существует: {'TOKEN' in os.environ}")
-print(f"Все переменные: {list(os.environ.keys())}")
-print("=" * 50)
+# ---- ДИАГНОСТИКА ----
+print("=" * 60)
+print("🔍 ДИАГНОСТИКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ")
+print("=" * 60)
+print(f"Python version: {sys.version}")
+print(f"Working directory: {os.getcwd()}")
+print(f"\n📋 Все переменные окружения:")
+for key in sorted(os.environ.keys()):
+    if key == "TOKEN":
+        print(f"  ✅ {key} = {os.environ[key][:20]}...")  # Показываем первые 20 символов
+    else:
+        print(f"  • {key} = {os.environ[key][:50] if len(os.environ[key]) < 50 else os.environ[key][:50] + '...'}")
+
+print(f"\n🔑 Проверка TOKEN:")
+print(f"  TOKEN в os.environ? {'TOKEN' in os.environ}")
+print(f"  os.getenv('TOKEN')? {os.getenv('TOKEN') is not None}")
+
+if 'TOKEN' in os.environ:
+    token_value = os.environ['TOKEN']
+    print(f"  Длина токена: {len(token_value)}")
+    print(f"  Первые 10 символов: {token_value[:10]}")
+print("=" * 60)
 # ---- КОНЕЦ ДИАГНОСТИКИ ----
 
 # ---- Проверка доступа ----
